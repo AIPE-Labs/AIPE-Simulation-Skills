@@ -46,8 +46,9 @@ variants.
 
 The [tool policy and capability matrix](tool-policy.md), [skill metadata](../skills.json),
 [AIPE manifest](../aipe.yaml) and [Core mapping](core-mapping.md) describe exact boundaries. CAD/PCB/FEA
-additions are workflow scaffolds; MCP candidates are researched only. Existing repository content has no
-declared blanket licence and remains `NOASSERTION`.
+additions are workflow scaffolds; MCP candidates are researched only. The repository content is MIT-licensed
+([LICENSE](../LICENSE)); it bundles no vendor software, device model or library, and those keep their own
+licences.
 
 ## Runnable open example
 

@@ -19,6 +19,7 @@ from pathlib import Path
 
 import yaml
 
+from .control.plant import series_current_at
 from .control.simulate import SCENARIOS, ControlDesign, design_controllers, run_baseline
 from .control.verify import compare_power_with_ngspice, format_comparison_table
 from .dab.netlist import build_dab_netlist
@@ -72,6 +73,12 @@ def cmd_run(args: argparse.Namespace) -> int:
         spec.sim.cycles = args.cycles
     if args.max_step_fraction:
         spec.sim.max_step_fraction = args.max_step_fraction
+    if args.analytic_start:
+        # Lossless SPS series current at the time origin, so the run starts on the periodic orbit instead of
+        # spending tens of cycles decaying a start-up offset.
+        spec.sim.use_initial_conditions = True
+        spec.sim.initial_series_current = series_current_at(spec.v1, spec.v2, spec.n_ratio, spec.f_sw,
+                                                            spec.l_total_primary, spec.phi_rad, 0.0, "centre")
     result = run_dab(spec, args.out, ngspice=args.ngspice)
     brief = {"run_dir": result.run_dir, "succeeded": result.succeeded, "valid": result.valid, "status": result.status,
              "messages": result.messages, "spec_sha256": result.spec_sha256}
@@ -81,7 +88,10 @@ def cmd_run(args: argparse.Namespace) -> int:
         brief["p_out_W"] = ports.get("port2", {}).get("power_avg", {}).get("value")
         brief["i_L_rms_A"] = result.summary.get("series_path", {}).get("i_L_rms", {}).get("value")
     print(json.dumps(brief, indent=2, default=str))
-    return 0 if result.succeeded else 1
+    # 0: valid periodic steady state; 1: solver failed; 2: solver completed but the result is not valid.
+    if not result.succeeded:
+        return 1
+    return 0 if result.valid else 2
 
 
 def cmd_analyse(args: argparse.Namespace) -> int:
@@ -142,6 +152,8 @@ def main(argv: list[str] | None = None) -> int:
     p.add_argument("--ngspice")
     p.add_argument("--cycles", type=int)
     p.add_argument("--max-step-fraction", type=int)
+    p.add_argument("--analytic-start", action="store_true",
+                   help="start from the analytic lossless SPS series current (reaches steady state within a few cycles)")
     p.set_defaults(func=cmd_run)
     p = dab_sub.add_parser("analyse", help="recompute the summary of a stored run")
     p.add_argument("--run", required=True)

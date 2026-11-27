@@ -63,7 +63,7 @@ datasheet-sourced or labelled assumptions in
 `AIPE-Workflows/examples/dab-10kw/level2-circuit-spec.yaml`.
 
 Executed result (160 cycles, t_max = T/400, 1.4e5 time points): total loss about
-136 W of 9.7 kW drawn, of which about 123 W is dissipated in the eight switch
+132 W of 9.7 kW drawn, of which about 123 W is dissipated in the eight switch
 pairs (conduction at 58.7 mOhm for all devices, which overstates the secondary
 bridge, plus body-diode conduction during dead time and Coss damping); peak
 drain-source voltages 810 V (primary) and 412 V (secondary); every switch turns
@@ -96,12 +96,18 @@ manufacturer reference conditions.
 
 ```sh
 pip install -e ../AIPE-Simulation-Skills
-set AIPE_TOOLS_DIR=<workspace>/tools        # or put ngspice_con on PATH / set AIPE_NGSPICE
+set AIPE_TOOLS_DIR=<workspace>/tools        # Windows; on Linux `sudo apt-get install ngspice` is enough
 aipe-sim doctor
-aipe-sim dab run --out runs/dab-l1 --cycles 24
-aipe-sim dab run --spec ../AIPE-Workflows/examples/dab-10kw/level2-circuit-spec.yaml --out runs/dab-l2
+aipe-sim dab run --analytic-start --out runs/dab-l1 --cycles 24
+aipe-sim dab run --spec tests/data/dab-10kw-level2-spec.json --out runs/dab-l2
 aipe-sim dab analyse --run runs/dab-l2
 ```
+
+`--analytic-start` supplies the analytic initial conditions the Level 1 table above was computed with;
+without it the 24-cycle run is reported as `not_steady_state` (exit code 2). The Level 2 specification
+is the one recorded by the AIPE-Workflows `circuit-sim-level2` task and is kept in this repository as a
+test fixture; `tests/test_dab_level2_ngspice.py` repeats that run on every push (see
+[validation.md](validation.md) for the Windows / Linux comparison).
 
 Each run directory contains `spec.json`, `metadata.json`, `circuit.cir`,
 `circuit.log`, `circuit.raw`, `waveforms.h5` (HDF5, `/time` and

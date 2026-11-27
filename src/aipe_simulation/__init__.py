@@ -25,4 +25,4 @@ derived from an executed solver run, and a run that failed, did not converge or
 did not reach periodic steady state is reported as such.
 """
 
-__version__ = "0.2.0"
+__version__ = "0.2.1"
