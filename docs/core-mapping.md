@@ -29,6 +29,7 @@ input assumption separately before attaching an analytical result. Do not set
 validation to measured when a numerical regression passes. CAD and PCB artifacts
 do not establish insulation, thermal or manufacturing acceptance.
 
-Validate a composed state against the released/local AIPE-Core schemas and its
-semantic reference validator. Schema IDs are logical v0.1 URLs; until the
-release exists resolve local Core files, never silently fetch future schemas.
+Validate a composed state against the AIPE-Core v0.1.0 schemas and its semantic
+reference validator. Schema IDs start with
+`https://raw.githubusercontent.com/AIPE-Labs/AIPE-Core/v0.1.0/schemas/`; resolve
+them from a Core checkout at that tag rather than fetching at run time.

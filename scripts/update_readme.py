@@ -115,7 +115,8 @@ externally licensed integrations. Contracts come from AIPE-Core; the manifest is
 ## Features
 
 - {len(rows)} skills with maturity and tool-access classification in `skills.json`; procedures live in each
-  skill's `references/`
+  skill's `references/`. A skill is a written procedure for an agent: only the ngspice and python-control
+  skills are backed by code that this repository executes
 - `aipe_simulation.ngspice`: locates and qualifies ngspice, runs batch netlists, parses raw files
 - `aipe_simulation.dab`: typed `DabCircuitSpec`, single-phase-shift gating, ideal (Level 1) and behavioural
   (Level 2) dual-active-bridge netlists, runner writing netlist, log, raw data, HDF5 waveforms and
@@ -127,8 +128,12 @@ externally licensed integrations. Contracts come from AIPE-Core; the manifest is
 
 ## Installation
 
-Python 3.10 or newer; numpy, h5py and PyYAML are installed with the package. ngspice is optional (solver
-tests skip without it). The open control example needs `pe-python-control-analysis/requirements.txt`.
+Python 3.10 or newer; numpy, h5py and PyYAML are installed with the package. Executing a simulation needs
+ngspice on `PATH` (`sudo apt-get install ngspice` on Ubuntu, or the official Windows build with
+`AIPE_NGSPICE` pointing at `ngspice_con.exe`); without it the solver tests skip. The open control example
+needs `pe-python-control-analysis/requirements.txt`. No vendor software, device model or library is bundled:
+a skill that names LTspice, PLECS, MATLAB/Simulink, SIMetrix/SIMPLIS, ANSYS or COMSOL needs your own
+installation and licence of that tool.
 
 ```sh
 python -m pip install -e ".[dev]"
@@ -139,10 +144,15 @@ python -m pip install -r pe-python-control-analysis/requirements.txt
 
 ```sh
 aipe-sim doctor                                   # locate and numerically qualify ngspice
-aipe-sim dab run --out runs/dab-level1            # ideal 10 kW DAB: netlist, ngspice run, HDF5 waveforms, summary.json
+aipe-sim dab run --analytic-start --out runs/dab-level1   # ideal 10 kW DAB: netlist, ngspice run, HDF5 waveforms, summary.json
 python pe-python-control-analysis/scripts/buck_control.py --output buck-result.json
 python -m pytest -q tests/                        # solver tests skip when ngspice is absent
 ```
+
+`aipe-sim dab run` exits 0 only for a valid periodic steady state (1: solver failed, 2: completed but not
+valid). Without `--analytic-start` the default circuit starts from zero current and needs about 130 cycles
+(`--cycles 130`) to settle. The layout of `waveforms.h5` is specified in
+[docs/waveform-dataset.md](docs/waveform-dataset.md).
 
 To use a skill in Codex, copy its folder into your skills directory and invoke it by name, for example
 `Use $pe-ngspice-switching-validation to check this switching netlist`; see
@@ -159,8 +169,9 @@ To use a skill in Codex, copy its folder into your skills directory and invoke i
   CAD, PCB and FEA skills are scaffolds, MCP connectors are evaluated only, no hardware validation is claimed
 - Developer: Fulong Li
 - Organisation: Spirit Connect / AIPE Labs
-- License: not declared - no licence file; `aipe.yaml` records `NOASSERTION` and the retained skill content
-  has no blanket licence
+- License: MIT ([LICENSE](LICENSE)). Third-party tools and vendor device models keep their own licences and
+  are not part of this repository
+- Repository: <https://github.com/AIPE-Labs/AIPE-Simulation-Skills> · [Changelog](CHANGELOG.md)
 
 ## Documentation
 
@@ -168,8 +179,10 @@ To use a skill in Codex, copy its folder into your skills directory and invoke i
 - [Architecture: package modules, skill layout and CLI](docs/architecture.md)
 - [Executed 10 kW DAB benchmark and model lessons](docs/dab-models.md) ·
   [SPS control specification](docs/dab-sps-control-spec.md)
-- [Tool policy and capability matrix](docs/tool-policy.md) · [v0.1 validation record](docs/validation.md) ·
-  [Core mapping](docs/core-mapping.md)
+- [Waveform dataset format (`waveforms.h5`)](docs/waveform-dataset.md)
+- [Validation record: what has been executed, where, and how to repeat it](docs/validation.md)
+- [Tool policy and capability matrix](docs/tool-policy.md) · [Core mapping](docs/core-mapping.md) ·
+  [Review of November 2026: open problems and proposals](docs/review-2026-11.md)
 - [Skill metadata](skills.json) · [Capability manifest](aipe.yaml)
 """
 
